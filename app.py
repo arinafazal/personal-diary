@@ -133,9 +133,10 @@ def save_ex():
     }
     db.examples.insert_one(doc)
     return jsonify({
-        'result': 'success',
+        "result": "success",
         'msg': f'Your example, {example}, for the word, {word}, was saved!',
     })
+
 
 @app.route('/api/delete_ex', methods=['POST'])
 def delete_ex():
@@ -143,9 +144,9 @@ def delete_ex():
     word = request.form.get('word')
     db.examples.delete_one({'_id': ObjectId(id)})
     return jsonify({
-        'result': 'success',
+        "result": "success",
         'msg': f'Your example for the word, {word}, was deleted!',
     })
 
-if __name__ == '__main__' :
+if __name__ == '__main__':
     app.run('0.0.0.0', port=5000, debug=True)
