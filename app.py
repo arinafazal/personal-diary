@@ -27,20 +27,19 @@ def main():
     for word in words_result:
         definition = word['definitions'][0]['shortdef']
         definition = definition if type(definition) is str else definition[0]
-        words.append({
-            'word': word['word'],
-            'definition': definition,
-        })
+        words.append(
+            {
+                'word': word['word'],
+                'definition': definition,
+            }
+        )
     msg = request.args.get('msg')
-    return render_template(
-        'index.html',
-        words=words,
-        msg=msg
-    )
+    return render_template('index.html', words=words, msg=msg)
+
 
 @app.route('/detail/<keyword>')
 def detail(keyword):
-    api_key = '93a4938f-1302-4449-b573-41aa134080c0'
+    api_key = 'f5c443cf-fa94-4c41-8d8b-cfacf80574f8'
     url = f'https://www.dictionaryapi.com/api/v3/references/collegiate/json/{keyword}?key={api_key}'
     response = requests.get(url)
     definitions = response.json()
@@ -49,48 +48,50 @@ def detail(keyword):
         return redirect(url_for(
             'error',
             word=keyword
-    ))
+        ))
 
     if type(definitions[0]) is str:
         return redirect(url_for(
             'error',
             word=keyword,
-            suggestions = ','.join(definitions)
-    ))
+            suggestions = ', '.join(definitions)
+        ))
 
-    status = request.args.get ('status_give', 'new')
+    status = request.args.get('status_give', 'new')
     return render_template(
-        'detail.html', 
-        word=keyword,
-        definitions =  definitions,
-        status = status,
+        'detail.html', word=keyword, definitions=definitions, status=status
     )
+
 
 @app.route('/api/save_word', methods=['POST'])
 def save_word():
     json_data = request.get_json()
     word = json_data.get('word_give')
     definitions = json_data.get('definitions_give')
+
     doc = {
         'word': word,
         'definitions': definitions,
-        'date': datetime.now().strftime('%Y-%m-%d')
+        'date': datetime.now().strftime('%Y%m%d'),
     }
+
     db.words.insert_one(doc)
     return jsonify({
         'result': 'success',
         'msg': f'the word, {word}, was saved!!!',
     })
 
+
 @app.route('/api/delete_word', methods=['POST'])
 def delete_word():
     word = request.form.get('word_give')
     db.words.delete_one({'word': word})
-    db.example.delete_many({'word': word})
+    db.examples.delete_many({'word': word})
     return jsonify({
         'result': 'success',
-        'msg': f'the word {word} was deleted',
+        'msg': f'the word, {word}, was deleted',
     })
+
 
 @app.route('/error')
 def error():
@@ -104,11 +105,13 @@ def error():
         suggestions=suggestions
     )
 
+
 @app.route('/practice')
 def practice() :
         return render_template('practice.html')
 
-@app.route('/api/get_exs', methods=['GET'])
+
+@app.route("/api/get_exs", methods=["GET"])
 def get_exs():
     word = request.args.get('word')
     example_data = db.examples.find({'word': word})
@@ -116,12 +119,13 @@ def get_exs():
     for example in example_data:
         examples.append({
             'example': example.get('example'),
-            'id' : str(example.get('_id')),
+            'id': str(example.get('_id')),
         })
     return jsonify({
-        'result': 'success',
-        'examples': examples
+        "result": "success",
+        "examples": examples
     })
+
 
 @app.route('/api/save_ex', methods=['POST'])
 def save_ex():
